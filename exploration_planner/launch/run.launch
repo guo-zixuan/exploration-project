@@ -1,0 +1,19 @@
+<launch>
+
+  <include file="$(find octomap_generator_with_slam)/launch/aloam_run.launch"/>
+
+  <include file="$(find lio_sam)/launch/run_sim.launch"/>
+
+  <arg name="octomap_param_file" default="$(find exploration_planner)/config/octomap.yaml" />
+  <arg name="planner_param_file" default="$(find exploration_planner)/config/planner.yaml" />
+
+  <rosparam command="load" file="$(arg octomap_param_file)" />
+  <rosparam command="load" file="$(arg planner_param_file)" />
+
+  <node name="exploration_planner" pkg="exploration_planner" type="exploration_planner_node" output="screen" >
+    <remap from="input_octomap" to="/octo3Dmap"/>
+  </node>
+
+  <node pkg="rviz" type="rviz" name="dsvp_rviz" args="-d $(find exploration_planner)/default.rviz"/>
+
+</launch>

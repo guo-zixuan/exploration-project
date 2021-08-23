@@ -1,0 +1,3 @@
+#Planner Parameters
+/planner/odomTopic: /lio_sam/mapping/odometry
+/planner/gridMapTopic: /map
