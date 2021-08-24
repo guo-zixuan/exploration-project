@@ -4,6 +4,7 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <octomap_world/octomap_manager.h>
+#include <exploration_planner/grid.hpp>
 
 
 namespace  exploration_ns{
@@ -26,6 +27,8 @@ namespace  exploration_ns{
     ros::Publisher octomapPub_;
 
     volumetric_mapping::OctomapManager *manager_;
+    exploration_ns::grid *grid_;
+
     nav_msgs::OccupancyGrid gridMap_;
     nav_msgs::Odometry robotOdom_;
 

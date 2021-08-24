@@ -1,6 +1,6 @@
 <launch>
 
-  <include file="$(find octomap_generator_with_slam)/launch/aloam_run.launch"/>
+  <include file="$(find octomap_generator_with_slam)/launch/lio_sam_run.launch"/>
 
   <include file="$(find lio_sam)/launch/run_sim.launch"/>
 

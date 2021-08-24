@@ -6,6 +6,7 @@ exploration_ns::exploration_planner::exploration_planner(ros::NodeHandle& nh,ros
 nh_private_(nh_p)
 {
   manager_ = new volumetric_mapping::OctomapManager(nh_, nh_private_);
+  grid_ = new exploration_ns::grid(nh_,nh_private_);
   
   init();
 
@@ -13,6 +14,9 @@ nh_private_(nh_p)
 exploration_ns::exploration_planner::~exploration_planner(){
   if (manager_) {
     delete manager_;
+  }
+  if (grid_) {
+    delete grid_;
   }
 }
 
@@ -46,10 +50,12 @@ bool exploration_ns::exploration_planner::setParams(){
 void exploration_ns::exploration_planner::odomCallback(const nav_msgs::Odometry &pose){
   
   robotOdom_ = pose;
+  grid_->updateRobotOdom(robotOdom_);
   odomPub_.publish(robotOdom_);
 }
 void exploration_ns::exploration_planner::mapCallback(const nav_msgs::OccupancyGrid &map){
   
   gridMap_ = map;
+  grid_->updateMap(gridMap_);
   mapPub_.publish(gridMap_);
 }
