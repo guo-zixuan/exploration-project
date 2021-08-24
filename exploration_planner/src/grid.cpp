@@ -6,11 +6,6 @@ exploration_ns::grid::grid(ros::NodeHandle& nh,ros::NodeHandle& nh_p):
 nh_(nh),
 nh_private_(nh_p),
 currentCoordinate_(Cell(0,0)),
-mapOriginT_(Eigen::Vector3d::Zero()),
-mapOriginR_(Eigen::Quaterniond::Identity()),
-mapRes_(0.0),
-mapWidth_(0),
-mapHeight_(0),
 getMapState_(0),
 updateFrequency_(10.0)
 {
@@ -37,33 +32,36 @@ void exploration_ns::grid::init(){
 void exploration_ns::grid::execute(const ros::TimerEvent &e){
   if(getMapState_){
     
-    getPotentialFrontier();
+    getAllUnknownPoints();
 
   }else{
     ROS_INFO("waiting for 2d grid map");
   }
 }
 
-void exploration_ns::grid::getPotentialFrontier(){
+void exploration_ns::grid::getAllUnknownPoints(){
 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr potentialFrontiers = 
+  pcl::PointCloud<pcl::PointXYZ>::Ptr unknownPoints = 
       pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
 
   for(int i=0;i<=map_.data.size();i++){
     
-    if(map_.data[i] == -1){
+    if(map_.data[i] == UNKNOWN){
 
       geometry_msgs::Point p =  cellCenter(map_.info,indexCell(map_.info,i));
-      pcl::PointXYZ p_pcl(p.x,p.y,p.z);
 
-      potentialFrontiers->push_back(p_pcl);
+      if(isPotentialFrontier(p)){
+
+        pcl::PointXYZ p_pcl(p.x,p.y,p.z);
+
+        unknownPoints->push_back(p_pcl);
+
+      }
     }
   }
 
-
-
   sensor_msgs::PointCloud2 msg;
-  pcl::toROSMsg(*potentialFrontiers,msg);
+  pcl::toROSMsg(*unknownPoints,msg);
   msg.header.frame_id = "/map";
   msg.header.stamp = ros::Time::now();
 
@@ -71,38 +69,47 @@ void exploration_ns::grid::getPotentialFrontier(){
 
 }
 
+bool exploration_ns::grid::isPotentialFrontier(const geometry_msgs::Point& p){
+  
+  Cell c = pointCell(map_.info,p);
+  return isPotentialFrontier(c);
+}
+
+bool exploration_ns::grid::isPotentialFrontier(const Cell& c){
+  
+  for(int x=-1;x <= 1;x++ ){
+    for(int y=-1;y <= 1;y++ ){
+      Cell temp(c);
+      temp.x += x;
+      temp.y += y;
+
+      index_t index = cellIndex(map_.info,temp);
+
+      if(index == -1){
+        continue;
+      }
+
+      if(map_.data[index] == exploration_ns::UNOCCUPIED){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void exploration_ns::grid::updateMap(const nav_msgs::OccupancyGrid& map){
   
   this->map_ = map;
-
-  this->mapHeight_ = map.info.height;
-  this->mapWidth_ = map.info.width;
-  this->mapRes_ = map.info.resolution;
-
-  double t_x,t_y,t_z;
-  t_x = map.info.origin.position.x;
-  t_y = map.info.origin.position.y;
-  t_z = map.info.origin.position.z;
-  
-  this->mapOriginT_ = Eigen::Vector3d(t_x,t_y,t_z);
-
-  double q_x,q_y,q_z,q_w;
-  q_x = map.info.origin.orientation.x;
-  q_y = map.info.origin.orientation.y;
-  q_z = map.info.origin.orientation.z;
-  q_w = map.info.origin.orientation.w;
-
-  this->mapOriginR_ = Eigen::Quaterniond(q_w,q_x,q_y,q_z);
-
   getMapState_ = true;
+
 }
 
 void exploration_ns::grid::updateRobotOdom(const nav_msgs::Odometry& odom){
   
   robotPosition_ = odom;
+  //update current coordinate
   currentCoordinate_ = convertOdom2Grid(robotPosition_);
 
-  //update current coordinate
 }
 
 Cell exploration_ns::grid::convertOdom2Grid(const nav_msgs::Odometry& odom){

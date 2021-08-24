@@ -139,6 +139,7 @@ include_directories("/usr/include/eigen3")
  add_library(exploration_lib
    src/exploration_planner.cpp
    src/grid.cpp
+   src/frontier.cpp
  )
  add_dependencies(exploration_lib ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  target_link_libraries(exploration_lib ${catkin_LIBRARIES} ${OCTOMAP_LIBRARIES} )

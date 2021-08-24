@@ -30,7 +30,7 @@ struct Cell
 
   const int8_t UNOCCUPIED=0;
   const int8_t OCCUPIED=100;
-  const int8_t UNKNOWN=255;
+  const int8_t UNKNOWN=-1;
 
   class grid{
     public:
@@ -42,7 +42,9 @@ struct Cell
 
       void execute(const ros::TimerEvent &e);
 
-      void getPotentialFrontier();
+      void getAllUnknownPoints();
+      bool isPotentialFrontier(const geometry_msgs::Point& p);
+      bool isPotentialFrontier(const Cell& c);
 
       void updateRobotOdom(const nav_msgs::Odometry& odom);
       void updateMap(const nav_msgs::OccupancyGrid& map);
@@ -130,13 +132,6 @@ struct Cell
     nav_msgs::OccupancyGrid map_;
     nav_msgs::Odometry robotPosition_;
     Cell currentCoordinate_;
-
-    Eigen::Vector3d mapOriginT_;
-    Eigen::Quaterniond mapOriginR_;
-
-    double mapRes_;
-    int mapWidth_;
-    int mapHeight_;
 
     bool getMapState_;
     double updateFrequency_;

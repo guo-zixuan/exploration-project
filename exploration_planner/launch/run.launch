@@ -1,8 +1,7 @@
 <launch>
 
-  <include file="$(find octomap_generator_with_slam)/launch/lio_sam_run.launch"/>
-
   <include file="$(find lio_sam)/launch/run_sim.launch"/>
+  <include file="$(find octomap_generator_with_slam)/launch/lio_sam_run.launch"/>
 
   <arg name="octomap_param_file" default="$(find exploration_planner)/config/octomap.yaml" />
   <arg name="planner_param_file" default="$(find exploration_planner)/config/planner.yaml" />
