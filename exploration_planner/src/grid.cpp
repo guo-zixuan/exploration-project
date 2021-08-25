@@ -123,3 +123,42 @@ Cell exploration_ns::grid::convertOdom2Grid(const nav_msgs::Odometry& odom){
   Cell coor = pointCell(map_.info,point);
   return coor;
 }
+
+std::vector<Cell> exploration_ns::grid::rayCast(Cell origin, Cell goal,
+                                              Cell max_grid,
+                                              Cell min_grid) {
+  std::vector<Cell> grid_pairs;
+  if (origin == goal) {
+    grid_pairs.push_back(origin);
+    return grid_pairs;
+  }
+  Cell diff = goal - origin;
+  double max_dist = diff.squaredNorm();
+  int step_x = signum(diff.x);
+  int step_y = signum(diff.y);
+  double t_max_x = step_x == 0 ? DBL_MAX : intbound(origin.x, diff.x);
+  double t_max_y = step_y == 0 ? DBL_MAX : intbound(origin.y, diff.y);
+  double t_delta_x = step_x == 0 ? DBL_MAX : (double)step_x / (double)diff.x;
+  double t_delta_y = step_y == 0 ? DBL_MAX : (double)step_y / (double)diff.y;
+  double dist = 0;
+  Cell cur_sub = origin;
+
+  while (true) {
+    if (InRange(cur_sub, max_grid, min_grid)) {
+      grid_pairs.push_back(cur_sub);
+      dist = (cur_sub - origin).squaredNorm();
+      if (cur_sub == goal || dist > max_dist) {
+        return grid_pairs;
+      }
+      if (t_max_x < t_max_y) {
+        cur_sub.x += step_x;
+        t_max_x += t_delta_x;
+      } else {
+        cur_sub.y += step_y;
+        t_max_y += t_delta_y;
+      }
+    } else {
+      return grid_pairs;
+    }
+  }
+}

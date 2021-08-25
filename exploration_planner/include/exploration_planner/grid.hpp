@@ -19,18 +19,54 @@ namespace  exploration_ns{
   typedef uint32_t index_t;
   typedef int16_t coord_t;
 
+  const int8_t UNOCCUPIED=0;
+  const int8_t OCCUPIED=100;
+  const int8_t UNKNOWN=-1;
+
 struct Cell
 {
   Cell(const coord_t x=0, const coord_t y=0) : x(x), y(y) {}
   coord_t x;
   coord_t y;
 
+    double squaredNorm(){
+    return (double)(this->x*this->x + this->y*this->y); 
+  }
 };
 
+  bool operator == (const Cell& a,const Cell& b)
+  {
+      if(a.x == b.x && a.y == b.y) return true;
+      else return false;
+  }
 
-  const int8_t UNOCCUPIED=0;
-  const int8_t OCCUPIED=100;
-  const int8_t UNKNOWN=-1;
+  Cell operator - (const Cell& a,const Cell& b)
+  {
+    return Cell(a.x -b.x , a.y - b.y);
+  }
+
+  int signum(int x) { return x == 0 ? 0 : x < 0 ? -1 : 1; }
+
+  bool InRange(const Cell sub, const Cell max_sub,
+                  const Cell min_sub) {
+  return sub.x >= min_sub.x && sub.x <= max_sub.x &&
+         sub.y >= min_sub.y && sub.y <= max_sub.y;
+  }
+
+  double mod(double value, double modulus) {
+    return fmod(fmod(value, modulus) + modulus, modulus);
+  }
+
+  double intbound(double s, double ds) {
+  // Find the smallest positive t such that s+t*ds is an integer.
+  if (ds < 0) {
+    return intbound(-s, -ds);
+  } else {
+    s = mod(s, 1);
+    // problem is now s+t*ds = 1
+    return (1 - s) / ds;
+  }
+}
 
   class grid{
     public:
@@ -50,6 +86,12 @@ struct Cell
       void updateMap(const nav_msgs::OccupancyGrid& map);
 
       Cell convertOdom2Grid(const nav_msgs::Odometry& odom);
+
+      std::vector<Cell> rayCast(Cell origin, Cell goal,
+                                              Cell max_grid,
+                                              Cell min_grid);
+
+      
 
       inline
       index_t cellIndex (const nav_msgs::MapMetaData& info, const Cell& c)
